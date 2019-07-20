@@ -31,3 +31,7 @@
   grid-template-columns: repeat(auto-fill, 180px);
   grid-gap: 10px;
 }
+
+.category__row{
+  width: 100%;
+}

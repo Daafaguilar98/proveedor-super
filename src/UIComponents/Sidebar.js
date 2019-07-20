@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Layout, Menu, Icon } from 'antd';
+import { Link } from 'react-router-dom'
 import logo from '../assets/logo.png';
 const { Sider } = Layout;
 const SubMenu = Menu.SubMenu;
@@ -25,16 +26,22 @@ class Sidebar extends Component {
         </div>
         <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline">
           <Menu.Item key="1">
-            <Icon type="pie-chart" />
-            <span>Inicio</span>
+            <Link to="/">
+              <Icon type="pie-chart" />
+              <span>Inicio</span>
+            </Link>
           </Menu.Item>
           <Menu.Item key="9">
-            <Icon type="file" />
-            <span>Categorias</span>
+            <Link to="/categories">
+              <Icon type="file" />
+              <span>Categorias</span>
+            </Link>
           </Menu.Item>
           <Menu.Item key="2">
-            <Icon type="desktop" />
-            <span>Productos</span>
+            <Link to="/products">
+              <Icon type="desktop" />
+              <span>Productos</span>
+            </Link>
           </Menu.Item>
           <SubMenu
             key="sub1"
