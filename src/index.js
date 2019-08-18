@@ -4,9 +4,16 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
-const password = prompt("Contraseña:");
+let password;
+
+if (localStorage.getItem("password")) {
+    password = localStorage.getItem("password")
+} else {
+    password = prompt("Contraseña:");
+}
 
 if(password === "0000") {
+    localStorage.setItem("password", password)
     ReactDOM.render(<App />, document.getElementById('root'));
 } else {
     ReactDOM.render(<div>Construccion!</div>, document.getElementById('root'));

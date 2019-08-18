@@ -1,32 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Form, Input, Upload, Icon, Select, Button, message } from "antd";
-import { useApi } from "store";
+import { useStateValue, useApi } from "store";
 import { database } from "database.js";
 import { getBase64 } from "utils/formats";
-
 const { Option } = Select;
 
-const ProductsNew = ({ form }) => {
+const ProductsUpdate = ({ match, form }) => {
   const { getFieldDecorator } = form;
 
   const { uploadPhoto } = useApi();
-  const [categories, setCategories] = useState([]);
-  const [imageUrl, setImageUrl] = useState(null);
-  const [data] = useState({
-    codigo: "",
-    categoria: "",
-    nombre: "",
-    precio4: ""
-  });
+  const [{ products, categories }, dispatch] = useStateValue();
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    getCategories();
+    getData();
   }, []);
 
-  const getCategories = async () => {
-    const snapshot = await database.ref("/Categorias").once("value");
-    setCategories(Object.values(snapshot.val()));
+  const getData = () => {
+    const data = products.find(product => product.key === match.params.id);
+    setData(data);
   };
 
   const beforeUpload = file => {
@@ -47,15 +40,28 @@ const ProductsNew = ({ form }) => {
       return;
     }
     if (info.file.status === "done") {
-      getBase64(info.file.originFileObj, imageUrl => {
-        setLoading(false);
-        setImageUrl(imageUrl);
+      getBase64(info.file.originFileObj, async imageUrl => {
+        const response = await uploadPhoto(imageUrl, "product");
+        if (response.status === 200) {
+          setLoading(false);
+          setData({ ...data, imagenURL: response.data.secure_url });
+          updateProduct();
+        } else {
+          message.error("Error in request");
+        }
       });
     }
   };
 
-  const newProduct = () => {
-    uploadPhoto(imageUrl, "products");
+  const updateProduct = e => {
+    if (e) e.preventDefault();
+
+    setTimeout(() => {
+      console.log(data);
+    }, 2000);
+    // const newProduct = Object.assign({}, data, form.getFieldsValue());
+    // database.ref(`Productos/${data.key}`).update(newProduct);
+    message.success("Producto actualizado");
   };
 
   const uploadButton = (
@@ -74,7 +80,7 @@ const ProductsNew = ({ form }) => {
     </Option>
   ));
 
-  return (
+  return data ? (
     <>
       <Upload
         name="avatar"
@@ -85,13 +91,13 @@ const ProductsNew = ({ form }) => {
         beforeUpload={beforeUpload}
         onChange={handleChange}
       >
-        {imageUrl ? (
-          <img src={imageUrl} alt="avatar" style={{ width: "100%" }} />
+        {data.imagenURL ? (
+          <img src={data.imagenURL} alt="avatar" style={{ width: "100%" }} />
         ) : (
           uploadButton
         )}
       </Upload>
-      <Form className="product_card__content">
+      <Form onSubmit={updateProduct} className="product_card__content">
         {getFieldDecorator("codigo", { initialValue: data.codigo })(
           <Input placeholder="Codigo" />
         )}
@@ -115,17 +121,14 @@ const ProductsNew = ({ form }) => {
         {getFieldDecorator("precio4", { initialValue: data.precio4 })(
           <Input placeholder="Precio" />
         )}
-        <Button
-          type="primary"
-          block
-          htmlType="submit"
-          onClick={() => newProduct()}
-        >
+        <Button type="primary" block htmlType="submit">
           Guardar
         </Button>
       </Form>
     </>
+  ) : (
+    <h1>Loading...</h1>
   );
 };
 
-export default Form.create({ name: "new_product" })(ProductsNew);
+export default Form.create({ name: "update_product" })(ProductsUpdate);
