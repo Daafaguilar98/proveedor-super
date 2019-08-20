@@ -1,4 +1,5 @@
 import axios from "axios";
+import { message } from "antd";
 import { database } from "../database.js";
 import { useStateValue } from "./index";
 
@@ -16,6 +17,25 @@ const useApi = () => {
       products[key].key = key;
     }
     dispatch({ type: "SET_PRODUCTS", payload: Object.values(products) });
+  };
+
+  const getAllProducts = async () => {
+    const snapshot = await database.ref("/Productos").once("value");
+    let products = snapshot.val();
+    for (let key in products) {
+      products[key].key = key;
+    }
+    dispatch({ type: "SET_PRODUCTS", payload: Object.values(products) });
+  };
+
+  const createProduct = async newProduct => {
+    database.ref(`Productos`).push(newProduct);
+    message.success("Producto creado");
+  };
+
+  const updateProduct = async (key, newProduct) => {
+    database.ref(`Productos/${key}`).update(newProduct);
+    message.success("Producto actualizado");
   };
 
   const getCategories = async () => {
@@ -43,7 +63,14 @@ const useApi = () => {
     });
   };
 
-  return { getProducts, getCategories, uploadPhoto };
+  return {
+    getProducts,
+    getAllProducts,
+    createProduct,
+    updateProduct,
+    getCategories,
+    uploadPhoto
+  };
 };
 
 export default useApi;

@@ -6,10 +6,10 @@ import { getBase64 } from "utils/formats";
 
 const { Option } = Select;
 
-const ProductsNew = ({ form }) => {
+const ProductsNew = ({ history, form }) => {
   const { getFieldDecorator } = form;
 
-  const { uploadPhoto } = useApi();
+  const { createProduct, uploadPhoto } = useApi();
   const [categories, setCategories] = useState([]);
   const [imageUrl, setImageUrl] = useState(null);
   const [data] = useState({
@@ -54,8 +54,13 @@ const ProductsNew = ({ form }) => {
     }
   };
 
-  const newProduct = () => {
-    uploadPhoto(imageUrl, "products");
+  const newProduct = async () => {
+    const response = await uploadPhoto(imageUrl, "products");
+    createProduct({
+      ...form.getFieldsValue(),
+      imagenURL: response.data.secure_url
+    });
+    history.push("/products");
   };
 
   const uploadButton = (

@@ -6,14 +6,18 @@ const { Option } = Select;
 
 const Products = () => {
   const [{ products, categories }, dispatch] = useStateValue();
-  const { getProducts, getCategories } = useApi();
+  const { getProducts, getAllProducts, getCategories } = useApi();
 
   useEffect(() => {
     getCategories();
   }, []);
 
   const handleChangeCategory = value => {
-    getProducts({ key: "categoria", value });
+    if (value === "all") {
+      getAllProducts();
+    } else {
+      getProducts({ key: "categoria", value });
+    }
   };
 
   const confirm = () => {
@@ -43,6 +47,7 @@ const Products = () => {
               {category.categoria}
             </Option>
           ))}
+          <Option value="all">Todos los productos</Option>
         </Select>
         <Link to="/products/new">
           <Button type="primary">Crear producto</Button>

@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Form, Input, Upload, Icon, Select, Button, message } from "antd";
 import { useStateValue, useApi } from "store";
-import { database } from "database.js";
 import { getBase64 } from "utils/formats";
 const { Option } = Select;
 
-const ProductsUpdate = ({ match, form }) => {
+const ProductsUpdate = ({ history, match, form }) => {
   const { getFieldDecorator } = form;
 
-  const { uploadPhoto } = useApi();
-  const [{ products, categories }, dispatch] = useStateValue();
+  const { updateProduct, uploadPhoto } = useApi();
+  const [{ products, categories }] = useStateValue();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -19,7 +18,11 @@ const ProductsUpdate = ({ match, form }) => {
 
   const getData = () => {
     const data = products.find(product => product.key === match.params.id);
-    setData(data);
+    if (data) {
+      setData(data);
+    } else {
+      history.push("/products");
+    }
   };
 
   const beforeUpload = file => {
@@ -44,8 +47,11 @@ const ProductsUpdate = ({ match, form }) => {
         const response = await uploadPhoto(imageUrl, "product");
         if (response.status === 200) {
           setLoading(false);
+          updateProduct(data.key, {
+            ...data,
+            imagenURL: response.data.secure_url
+          });
           setData({ ...data, imagenURL: response.data.secure_url });
-          updateProduct();
         } else {
           message.error("Error in request");
         }
@@ -53,15 +59,9 @@ const ProductsUpdate = ({ match, form }) => {
     }
   };
 
-  const updateProduct = e => {
+  const submitForm = e => {
     if (e) e.preventDefault();
-
-    setTimeout(() => {
-      console.log(data);
-    }, 2000);
-    // const newProduct = Object.assign({}, data, form.getFieldsValue());
-    // database.ref(`Productos/${data.key}`).update(newProduct);
-    message.success("Producto actualizado");
+    updateProduct(data.key, { ...data, ...form.getFieldsValue() });
   };
 
   const uploadButton = (
@@ -97,7 +97,7 @@ const ProductsUpdate = ({ match, form }) => {
           uploadButton
         )}
       </Upload>
-      <Form onSubmit={updateProduct} className="product_card__content">
+      <Form onSubmit={submitForm} className="product_card__content">
         {getFieldDecorator("codigo", { initialValue: data.codigo })(
           <Input placeholder="Codigo" />
         )}
